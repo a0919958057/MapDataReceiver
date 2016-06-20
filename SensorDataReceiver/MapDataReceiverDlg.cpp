@@ -112,7 +112,7 @@ BOOL CMapDataReceiverDlg::OnInitDialog()
 	// TODO: 在此加入額外的初始設定
 	AfxSocketInit();
 	m_socket.registerParent(this);
-	m_socket_ip_c.SetAddress(192, 168, 1, 37);
+	m_socket_ip_c.SetAddress(127, 0, 0, 1);
 	m_socket_port = 25651;
 
 	for (int i = 0; i < SIZE_MAP; i += SIZE_MAP / 20) {
@@ -300,5 +300,6 @@ void CMapDataReceiverDlg::OnBnClickedSaveMap() {
 	filter = "所有文件(*.bmp,*.jpg,*.gif,*tiff)|*.bmp;*.jpg;*.gif;*.tiff| BMP(*.bmp)|*.bmp| JPG(*.jpg)|*.jpg| GIF(*.gif)|*.gif| TIFF(*.tiff)|*.tiff||";
 	CFileDialog fdlg(FALSE, NULL, NULL, OFN_HIDEREADONLY, filter, NULL);
 
-	if (fdlg.DoModal() == IDOK);
+	if (fdlg.DoModal() == IDOK) {
+	}
 }

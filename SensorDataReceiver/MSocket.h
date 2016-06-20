@@ -1,25 +1,17 @@
 #pragma once
 #include "afxsock.h"
-#include <sys/types.h>
+#include "MapDataStruct.h"
+#include <boost\shared_ptr.hpp>
 
-#define MAP_SIZE_X (400)
-#define MAP_SIZE_Y (400)
+#include <vector>
 
-#define SIZE_MAP ( MAP_SIZE_X * MAP_SIZE_Y )
 
-struct MapMetaInfo {
-	float res;
-	unsigned int height;
-	unsigned int width;
-	float origin_x;
-	float origin_y;
-	float origin_yaw;
-};
+// Show the socket receiving status
+#define _SHOW_SOCKET_DEBUG
+using namespace std;
 
-struct MapData {
-	struct MapMetaInfo info;
-	UINT8 data[SIZE_MAP];
-};
+typedef boost::shared_ptr<MapDataPart> MapDataPartPtr;
+typedef vector<MapDataPartPtr> MapDataPartArray;
 
 class CMSocket :
 	public CSocket {
@@ -28,9 +20,12 @@ public:
 	virtual ~CMSocket();
 	virtual void OnReceive(int nErrorCode);
 	virtual BOOL OnMessagePending();
-	struct MapData* m_map_data;
 	void registerParent(CWnd* _parent);
-
 	CWnd* m_parent;
+	struct MapData* m_map_data;
+	MapDataPartArray m_map_parts;
+	void showData();
+private:
+	void assembleData();
 };
 
