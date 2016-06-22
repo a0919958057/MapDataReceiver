@@ -55,7 +55,7 @@ void CMSocket::OnReceive(int nErrorCode) {
 				if (GetLastError() != WSAEWOULDBLOCK) {
 					//AfxMessageBox(_T("Error occurred"));
 					Close();
-					((CMapDataReceiverDlg*)m_parent)->DoMapSocketConnect();
+					((CMapDataReceiverDlg*)m_parent)->DoSocketConnect();
 					return;
 				}
 				break;
@@ -97,6 +97,34 @@ BOOL CMSocket::OnMessagePending() {
 }
 
 void CMSocket::showData() {
+
+	//CListBox* aListBox = (CListBox*)m_parent->GetDlgItem(IDC_SENSOR_DATA);
+	//aListBox->SetRedraw(false);
+	//aListBox->ResetContent();
+	//char buffer[100];
+
+	//sprintf_s(buffer, 50, "Resolution: %5.2f",
+	//	m_map_data->info.res);
+	//aListBox->AddString(CString(buffer));
+
+	//sprintf_s(buffer, 50, "Map Height: %4d",
+	//	m_map_data->info.height);
+	//aListBox->AddString(CString(buffer));
+
+	//sprintf_s(buffer, 50, "Map Width: %4d",
+	//	m_map_data->info.width);
+	//aListBox->AddString(CString(buffer));
+	//sprintf_s(buffer, 50, "Origin : %5.2f, %5.2f",
+	//	m_map_data->info.origin_x, m_map_data->info.origin_y);
+	//aListBox->AddString(CString(buffer));
+
+
+	//sprintf_s(buffer, 50, "Rotation: %5.2f",
+	//	m_map_data->info.origin_yaw);
+	//aListBox->AddString(CString(buffer));
+
+
+	//aListBox->SetRedraw(true);
 
 
 	// ***********************************

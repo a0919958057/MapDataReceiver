@@ -7,8 +7,6 @@
 #include "afxwin.h"
 #include <afxsock.h>
 #include "MSocket.h"
-#include "CRLSocket.h"
-#include "RSocket.h"
 
 
 // CSensorDataReceiverDlg ¹ï¸Ü¤è¶ô
@@ -50,26 +48,20 @@ protected:
 	CIPAddressCtrl m_socket_ip_c;
 	CListBox m_socket_log_c;
 	CButton m_socket_connect_c;
-	UINT m_socket_map_port;
-	UINT m_socket_lrf_port;
+	UINT m_socket_port;
 	template<size_t LENGTH> void SendSocketMessage(char(&data)[LENGTH]);
 
 public:
 	afx_msg void OnBnClickedSocketConnect();
-	void DoMapSocketConnect();
-	void DoLRFSocketConnect();
+	void DoSocketConnect();
 private:
-	void DoMapSocketDisconnect();
-	void DoLRFSocketDisconnect();
+	void DoSocketDisconnect();
 	void CMapDataReceiverDlg::ReportSocketStatus(TCPEvent event_, CString &msg = CString(""));
-	bool fg_map_connected;
-	bool fg_lrf_connected;
+	bool fg_connected;
 protected:
-	CMSocket m_socket_map;
-	CRSocket m_socket_lrf;
+	CMSocket m_socket;
 public:
 	CListBox m_sensor_data_c;
 	CString m_pos_data;
 	afx_msg void OnBnClickedSaveMap();
-
 };
