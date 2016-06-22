@@ -39,6 +39,15 @@
     <ClInclude Include="MapDataStruct.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
+    <ClInclude Include="ControlDataStruct.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="CRLSocket.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="RSocket.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -51,6 +60,12 @@
       <Filter>原始程式檔</Filter>
     </ClCompile>
     <ClCompile Include="MSocket.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="CRLSocket.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="RSocket.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
   </ItemGroup>
