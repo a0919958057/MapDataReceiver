@@ -53,8 +53,8 @@ protected:
 
 public:
 	afx_msg void OnBnClickedSocketConnect();
-private:
 	void DoSocketConnect();
+private:
 	void DoSocketDisconnect();
 	void CMapDataReceiverDlg::ReportSocketStatus(TCPEvent event_, CString &msg = CString(""));
 	bool fg_connected;
