@@ -1,6 +1,4 @@
-#ifndef MAPDATASTRUCT_H
-#define MAPDATASTRUCT_H
-
+#pragma once
 #include<inttypes.h>
 #include <cmath>
 
@@ -14,39 +12,37 @@
 
 #define MAP_PART_COUNT ((int)(std::ceil(SIZE_MAP/MAP_PER_CUT_SIZE)))
 
-/********* åˆ†æ‰¹å‚³è¼¸æ™‚çš„Metaè³‡è¨Šï¼Œç”¨æ–¼è¾¨è­˜é€™æ˜¯ç¬¬å¹¾å€‹ç‰©ä»¶ï¼Œçµ„è£æ™‚ä½¿ç”¨ ******/
+/********* ¤À§å¶Ç¿é®ÉªºMeta¸ê°T¡A¥Î©ó¿ëÃÑ³o¬O²Ä´X­Óª«¥ó¡A²Õ¸Ë®É¨Ï¥Î ******/
 struct MapMetaInfoPart {
-    int map_stamp;
-    int part_stamp;
-    float res;
-    unsigned int height;
-    unsigned int width;
-    float origin_x;
-    float origin_y;
-    float origin_yaw;
+	int map_stamp;
+	int part_stamp;
+	float res;
+	unsigned int height;
+	unsigned int width;
+	float origin_x;
+	float origin_y;
+	float origin_yaw;
 };
 
 struct MapDataPart {
-    struct MapMetaInfoPart info;
-    uint8_t data[MAP_PER_CUT_SIZE];
+	struct MapMetaInfoPart info;
+	uint8_t data[MAP_PER_CUT_SIZE];
 };
 /****************************************************************/
 
-/*******************æ”¾ç½®å·²ç¶“çµ„åˆå¥½çš„è³‡æ–™*********************/
+/*******************©ñ¸m¤w¸g²Õ¦X¦nªº¸ê®Æ*********************/
 struct MapMetaInfo {
-    int map_stamp;
-    float res;
-    unsigned int height;
-    unsigned int width;
-    float origin_x;
-    float origin_y;
-    float origin_yaw;
+	int map_stamp;
+	float res;
+	unsigned int height;
+	unsigned int width;
+	float origin_x;
+	float origin_y;
+	float origin_yaw;
 };
 
 struct MapData {
-    struct MapMetaInfo info;
-    uint8_t data[SIZE_MAP];
+	struct MapMetaInfo info;
+	uint8_t data[SIZE_MAP];
 };
 /****************************************************************/
-
-#endif // MAPDATASTRUCT_H

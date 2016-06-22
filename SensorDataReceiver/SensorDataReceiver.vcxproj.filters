@@ -36,16 +36,16 @@
     <ClInclude Include="MSocket.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="MapDataStruct.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="ControlDataStruct.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
     <ClInclude Include="CRLSocket.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="RSocket.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="..\server\include\ControlDataStruct.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="..\server\include\MapDataStruct.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>

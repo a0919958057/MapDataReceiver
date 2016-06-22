@@ -196,9 +196,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ControlDataStruct.h" />
+    <ClInclude Include="..\server\include\ControlDataStruct.h" />
+    <ClInclude Include="..\server\include\MapDataStruct.h" />
     <ClInclude Include="CRLSocket.h" />
-    <ClInclude Include="MapDataStruct.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="MSocket.h" />
     <ClInclude Include="MapDataReceiver.h" />

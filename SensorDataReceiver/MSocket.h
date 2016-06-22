@@ -1,6 +1,6 @@
 #pragma once
 #include "afxsock.h"
-#include "MapDataStruct.h"
+#include "../server/include/MapDataStruct.h"
 #include <boost\shared_ptr.hpp>
 
 #include <vector>

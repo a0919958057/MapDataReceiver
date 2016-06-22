@@ -1,6 +1,6 @@
 #pragma once
 #include "afxsock.h"
-#include "ControlDataStruct.h"
+#include "../server/include/ControlDataStruct.h"
 
 #include <boost\shared_ptr.hpp>
 
