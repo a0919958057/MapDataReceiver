@@ -48,7 +48,6 @@ const int SOCKET_ERROR_EVENT_ONACCEPT   = 0x02;
 const int SOCKET_ERROR_EVENT_ONWRITE    = 0x03;
 const int SOCKET_ERROR_EVENT_ONREAD     = 0x04;
 const int SOCKET_ERROR_EVENT_ONBINDING  = 0x05;
-              last_sending_stamp = i;
 struct MapData* amap;
 nav_msgs::OccupancyGrid::ConstPtr pMsg;
 
