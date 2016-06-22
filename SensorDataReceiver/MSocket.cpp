@@ -6,6 +6,8 @@
 
 CMSocket::CMSocket() {
 	m_map_data = new MapData;
+	int buffer_size = 1024 * 1024 * 16;
+	SetSockOpt(SO_RCVBUF, &buffer_size, sizeof(int));
 }
 
 
@@ -19,9 +21,10 @@ void CMSocket::OnReceive(int nErrorCode) {
 	MapDataPartPtr ptrMap(new MapDataPart);
 
 	if (0 == nErrorCode) {
+		
 		static int i = 0;
 		i++;
-
+		
 		int nRead(0);
 
 		volatile int cbLeft(sizeof(MapDataPart)); // 4 Byte
@@ -50,8 +53,10 @@ void CMSocket::OnReceive(int nErrorCode) {
 			
 			if (nRead == SOCKET_ERROR) {
 				if (GetLastError() != WSAEWOULDBLOCK) {
-					AfxMessageBox(_T("Error occurred : %d"));
+					//AfxMessageBox(_T("Error occurred"));
 					Close();
+					((CMapDataReceiverDlg*)m_parent)->DoSocketConnect();
+					return;
 				}
 				break;
 			}
@@ -67,8 +72,10 @@ void CMSocket::OnReceive(int nErrorCode) {
 	}
 
 	if (ptrMap->info.part_stamp == (MAP_PART_COUNT - 1)*MAP_PER_CUT_SIZE) {
+		ptrMap.reset();
 		assembleData();
 		// Show the data to View module
+
 		showData();
 	}
 
@@ -236,6 +243,10 @@ void CMSocket::assembleData() {
 
 	// Copy the map data
 	int i(0);
+	//if (m_map_parts.size() != MAP_PART_COUNT) {
+	//	m_map_parts.clear();
+	//	return;
+	//}
 	for (MapDataPartArray::iterator it = m_map_parts.begin();
 					it != m_map_parts.end();
 						it++, i++) {
@@ -243,12 +254,14 @@ void CMSocket::assembleData() {
 		// Get each map part data pointer
 		uint8_t* ptrData = it->get()->data;
 		size_t offset = it->get()->info.part_stamp;
-
-		memcpy(m_map_data->data + offset, ptrData, MAP_PER_CUT_SIZE);
+		if (!(offset > (MAP_PART_COUNT - 1)*MAP_PER_CUT_SIZE)) {
+			memcpy(m_map_data->data + offset, ptrData, MAP_PER_CUT_SIZE);
+		}
 	}
 
-	// All data clean up
+	// Clear all data
 	m_map_parts.clear();
+
 }
 
 void CMSocket::registerParent(CWnd* _parent) {

@@ -112,7 +112,7 @@ BOOL CMapDataReceiverDlg::OnInitDialog()
 	// TODO: 在此加入額外的初始設定
 	AfxSocketInit();
 	m_socket.registerParent(this);
-	m_socket_ip_c.SetAddress(127, 0, 0, 1);
+	m_socket_ip_c.SetAddress(192, 168, 1, 2);
 	m_socket_port = 25651;
 
 	for (int i = 0; i < SIZE_MAP; i += SIZE_MAP / 20) {
