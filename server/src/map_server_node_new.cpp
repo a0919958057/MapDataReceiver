@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
     amap = new MapData;
 
     // Initial ROS
-    ros::init(argc,argv,"ocare_controller_node");
+    ros::init(argc,argv,"map_server_node");
 
     // Create the ROS node
     ros::NodeHandle node("~");
