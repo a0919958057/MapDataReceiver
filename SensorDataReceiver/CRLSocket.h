@@ -15,7 +15,7 @@ public:
 	virtual BOOL OnMessagePending();
 	void registerParent(CWnd* _parent);
 	CWnd* m_parent;
-	struct ControlMsg msg;
+	struct ControlMsg m_cmd_msg;
 	void showData();
 };
 

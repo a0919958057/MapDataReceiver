@@ -51,15 +51,15 @@ void CRSocket::OnReceive(int nErrorCode) {
 	}
 	//ShowRemoteImage();
 
-	//CListBox* aListBox = (CListBox*)m_parent->GetDlgItem(IDC_SENSOR_DATA);
-	//aListBox->SetRedraw(false);
-	//aListBox->ResetContent();
-	//for (int i = 0; i < SIZE_LRF_DATA; i+=20) {
-	//	char buffer[50];
-	//	sprintf_s(buffer,50, "%3d : %2.4e", i, m_lrf_data[i]);
-	//	aListBox->AddString(CString(buffer));
-	//}
-	//aListBox->SetRedraw(true);
+	CListBox* aListBox = (CListBox*)m_parent->GetDlgItem(IDC_SENSOR_DATA);
+	aListBox->SetRedraw(false);
+	aListBox->ResetContent();
+	for (int i = 0; i < SIZE_LRF_DATA; i+=20) {
+		char buffer[50];
+		sprintf_s(buffer,50, "%3d : %2.4e", i, m_lrf_data[i]);
+		aListBox->AddString(CString(buffer));
+	}
+	aListBox->SetRedraw(true);
 
 	CSocket::OnReceive(nErrorCode);
 }
