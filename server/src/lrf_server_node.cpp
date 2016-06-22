@@ -3,7 +3,6 @@
 #include<sensor_msgs/LaserScan.h>
 #include<math.h>
 #include<string>
-
 /******************************/
 
 // This header contains declearations used in most input and output and is typicall

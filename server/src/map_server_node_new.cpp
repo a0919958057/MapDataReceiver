@@ -8,6 +8,8 @@
 #include<vector>
 
 #include"MapDataStruct.h"
+#include"ControlDataStruct.h"
+
 
 /******************************/
 
@@ -21,6 +23,8 @@
 // This header file contains definition of number of data type used in system
 // calls. These types are used in the next two include files.
 #include <sys/types.h>
+
+#include <sys/ioctl.h>
 
 
 
@@ -39,7 +43,7 @@ typedef vector<boost::shared_ptr<MapDataPart> > MapDataPartArray;
 typedef boost::shared_ptr<MapData> MapDataPtr;
 
 // Socket for communication with remote PC
-int sockfd, newsockfd, socket_port;
+int sockfd, newsockfd, cmdsockfd, socket_port;
 
 
 const int SOCKET_ERROR_NOPROVIDE_PORT   = 0x00;
@@ -107,6 +111,44 @@ void callback_map(const nav_msgs::OccupancyGrid::ConstPtr &msg) {
 
     // Get the map data
     memcpy(amap->data,pMsg->data.data(),SIZE_MAP);
+}
+
+void porcessRec() {
+    // Read the command from MFC Client
+    int bytes_available(0);
+    if(ioctl(cmdsockfd, FIONREAD, &bytes_available) < 0) {
+        ROS_ERROR("Read Socket Read buffer failed, error= %d\n ", errno);
+    }
+    ControlMsg cmd_msg;
+    if(bytes_available > 0) {
+        read(cmdsockfd, &cmd_msg,sizeof(ControlMsg));
+        ROS_INFO("Read CMD Message! %d",cmd_msg.map_msg);
+        bytes_available = 0;
+    }
+
+    switch(cmd_msg.map_msg) {
+    case SET_INIT_POSE:
+        // Set the initial pose
+        break;
+    case GET_MAP_LIST: {
+        ControlMsg report_msg;
+        memcpy(&report_msg,&cmd_msg,sizeof(ControlMsg));
+        for(int i=0;i<5;i++) {
+            report_msg.data[i] = 10-i;
+        }
+
+        write(cmdsockfd,&report_msg,sizeof(ControlMsg));
+
+        break;
+    }
+    case SEL_MAP:
+
+        break;
+    case LOAD_MAP:
+
+        break;
+    }
+
 }
 
 bool is_sending_data(false);
@@ -177,9 +219,15 @@ int main(int argc, char** argv) {
     clilen = sizeof(cli_addr);
 
     RECONNECT:
-    newsockfd = accept(sockfd,(struct sockaddr*)&cli_addr,&clilen);
-
+    cmdsockfd = accept(sockfd,(struct sockaddr*)&cli_addr,&clilen);
     if(newsockfd < 0) errormsg_print(SOCKET_ERROR_EVENT_ONACCEPT);
+    else ROS_INFO("CMD tunnel Connect successful");
+
+    listen(sockfd, 5);
+
+    newsockfd = accept(sockfd,(struct sockaddr*)&cli_addr,&clilen);
+    if(newsockfd < 0) errormsg_print(SOCKET_ERROR_EVENT_ONACCEPT);
+    else ROS_INFO("Map tunnel Connect successful");
 
 
     // Setup buffer size
@@ -212,9 +260,6 @@ int main(int argc, char** argv) {
     ros::Rate rate(5);
     while (node.ok()){
 
-
-
-
       if( is_received_map == true) {
 
 
@@ -238,6 +283,9 @@ int main(int argc, char** argv) {
 
           for(int i=0;i<SIZE_MAP;i+= MAP_PER_CUT_SIZE) {
 
+
+              porcessRec();
+
               if(is_sending_data == true && is_connect_rst == true) {
                   ROS_WARN("RESTORE STAMP %d",last_sending_stamp);
                   i = last_sending_stamp;
@@ -254,14 +302,15 @@ int main(int argc, char** argv) {
               cbDataSended = 0;
               currentSended = 0;
               last_sending_stamp = i;
+              ROS_INFO("Map Part : Stamp:[%d]",i);
               do{
 
-                  ROS_INFO("SEND MESSAGE: left:%d  currentsended:%d",cbLeft, currentSended);
+                  //ROS_INFO("SEND MESSAGE: left:%d  currentsended:%d",cbLeft, currentSended);
 
                   if(cbLeft > 4000) {
-                      currentSended = write(newsockfd,(char*)&apart+cbDataSended,4000);
+                  currentSended = write(newsockfd,(char*)&apart+cbDataSended,4000);
                   } else {
-                      currentSended = write(newsockfd,(char*)&apart+cbDataSended,cbLeft);
+                  currentSended = write(newsockfd,(char*)&apart+cbDataSended,cbLeft);
                   }
 
                   is_sending_data = true;
@@ -280,7 +329,7 @@ int main(int argc, char** argv) {
                   cbLeft -= currentSended;
                   cbDataSended += currentSended;
 
-                  ROS_INFO("SENDED MESSAGE: left:%d  currentsended:%d",cbLeft, currentSended);
+                  //ROS_INFO("SENDED MESSAGE: left:%d  currentsended:%d",cbLeft, currentSended);
 
               }while(cbLeft > 0);
 
