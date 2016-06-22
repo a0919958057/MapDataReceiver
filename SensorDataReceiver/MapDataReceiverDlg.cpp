@@ -56,6 +56,7 @@ CMapDataReceiverDlg::CMapDataReceiverDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_SENSORDATARECEIVER_DIALOG, pParent)
 	, fg_map_connected(false)
 	, fg_lrf_connected(false)
+	, fg_cmd_connected(false)
 	, m_socket_map_port(0)
 	, m_socket_lrf_port(0)
 	, m_pos_data(_T("")) {
@@ -80,6 +81,8 @@ BEGIN_MESSAGE_MAP(CMapDataReceiverDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_SOCKET_CONNECT, &CMapDataReceiverDlg::OnBnClickedSocketConnect)
 	ON_BN_CLICKED(IDC_SAVE_MAP, &CMapDataReceiverDlg::OnBnClickedSaveMap)
+	ON_BN_CLICKED(IDC_GET_MAP_LIST, &CMapDataReceiverDlg::OnBnClickedGetMapList)
+	ON_BN_CLICKED(IDC_SEL_MAP, &CMapDataReceiverDlg::OnBnClickedSelMap)
 END_MESSAGE_MAP()
 
 
@@ -118,6 +121,9 @@ BOOL CMapDataReceiverDlg::OnInitDialog()
 	AfxSocketInit();
 	// Initial the Map Socket port
 	m_socket_map.registerParent(this);
+	m_socket_lrf.registerParent(this);
+	m_socket_cmd.registerParent(this);
+
 	m_socket_ip_c.SetAddress(192, 168, 1, 2);
 	m_socket_map_port = 25651;
 
@@ -212,9 +218,24 @@ void CMapDataReceiverDlg::DoMapSocketConnect() {
 	CString aStrIpAddress;
 	aStrIpAddress.Format(_T("%d.%d.%d.%d"),
 		aIpAddressUnit[0], aIpAddressUnit[1], aIpAddressUnit[2], aIpAddressUnit[3]);
+	
+	m_socket_cmd.Close();
+	if (!m_socket_cmd.Create()) {
+
+		// If Socket Create Fail Report Message
+		TCHAR szMsg[1024] = { 0 };
+		wsprintf(szMsg, _T("Map socket create faild: %d"), m_socket_map.GetLastError());
+		ReportSocketStatus(TCPEvent::CREATE_SOCKET_FAIL, CString("CMD Socket"));
+		AfxMessageBox(szMsg);
+	} else {
+
+		ReportSocketStatus(TCPEvent::CREATE_SOCKET_SUCCESSFUL, CString("CMD Socket"));
+		// Connect to the Server ( Raspberry Pi Server )
+		fg_cmd_connected = m_socket_cmd.Connect(aStrIpAddress, m_socket_map_port);
+
+	}
 
 	// Create a TCP Socket for transfer Camera data
-	// m_tcp_socket.Create(m_tcp_ip_port, 1, aStrIpAddress);
 	if (!m_socket_map.Create()) {
 
 		// If Socket Create Fail Report Message
@@ -235,11 +256,25 @@ void CMapDataReceiverDlg::DoMapSocketConnect() {
 		m_socket_map.Send("Test from here", 14);
 	}
 
+
+	CString report_map(aStrIpAddress);
+	report_map.Append(CString(" Map Socket"));
+
 	if (fg_map_connected)
-		ReportSocketStatus(TCPEvent::CONNECT_SUCCESSFUL, aStrIpAddress);
+		ReportSocketStatus(TCPEvent::CONNECT_SUCCESSFUL, report_map);
 	else {
-		ReportSocketStatus(TCPEvent::CONNECT_FAIL, aStrIpAddress);
+		ReportSocketStatus(TCPEvent::CONNECT_FAIL, report_map);
 		m_socket_map.Close();
+	}
+
+	CString report_cmd(aStrIpAddress);
+	report_map.Append(CString(" Cmd Socket"));
+
+	if (fg_cmd_connected)
+		ReportSocketStatus(TCPEvent::CONNECT_SUCCESSFUL, report_cmd);
+	else {
+		ReportSocketStatus(TCPEvent::CONNECT_FAIL, report_cmd);
+		m_socket_cmd.Close();
 	}
 
 
@@ -371,5 +406,32 @@ void CMapDataReceiverDlg::OnBnClickedSaveMap() {
 	CFileDialog fdlg(FALSE, NULL, NULL, OFN_HIDEREADONLY, filter, NULL);
 
 	if (fdlg.DoModal() == IDOK) {
+	}
+}
+
+
+void CMapDataReceiverDlg::OnBnClickedGetMapList() {
+	if (fg_cmd_connected) {
+		ControlMsg msg;
+		memset(&msg, 0, sizeof(ControlMsg));
+		msg.lrf_msg = ControlLRFMsg::START_LRF_STREAM;
+		msg.map_msg = ControlMapMsg::GET_MAP_LIST;
+		m_socket_cmd.Send(&msg, sizeof(ControlMsg));
+	} else {
+		AfxMessageBox(CString(_T("請先連接! Cmd tunnel")));
+	}
+}
+
+
+void CMapDataReceiverDlg::OnBnClickedSelMap() {
+	if (fg_cmd_connected) {
+		ControlMsg msg;
+		memset(&msg, 0, sizeof(ControlMsg));
+		msg.lrf_msg = ControlLRFMsg::START_LRF_STREAM;
+		msg.map_msg = ControlMapMsg::SEL_MAP;
+		msg.data[0] = m_sensor_data_c.GetCurSel();
+		m_socket_cmd.Send(&msg, sizeof(ControlMsg));
+	} else {
+		AfxMessageBox(CString(_T("請先連接! Cmd tunnel")));
 	}
 }

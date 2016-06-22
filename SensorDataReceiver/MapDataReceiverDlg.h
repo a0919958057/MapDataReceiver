@@ -64,12 +64,16 @@ private:
 	void CMapDataReceiverDlg::ReportSocketStatus(TCPEvent event_, CString &msg = CString(""));
 	bool fg_map_connected;
 	bool fg_lrf_connected;
+	bool fg_cmd_connected;
 protected:
 	CMSocket m_socket_map;
 	CRSocket m_socket_lrf;
+	CCRLSocket m_socket_cmd;
 public:
 	CListBox m_sensor_data_c;
 	CString m_pos_data;
 	afx_msg void OnBnClickedSaveMap();
 
+	afx_msg void OnBnClickedGetMapList();
+	afx_msg void OnBnClickedSelMap();
 };
