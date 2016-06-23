@@ -54,11 +54,7 @@ END_MESSAGE_MAP()
 
 CMapDataReceiverDlg::CMapDataReceiverDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_SENSORDATARECEIVER_DIALOG, pParent)
-	, fg_map_connected(false)
-	, fg_lrf_connected(false)
-	, m_socket_map_port(0)
-	, m_socket_lrf_port(0)
-	, m_pos_data(_T("")) {
+	, fg_connected(false), m_socket_port(0), m_pos_data(_T("")) {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
@@ -70,8 +66,7 @@ void CMapDataReceiverDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SOCKET_CONNECT, m_socket_connect_c);
 	DDX_Control(pDX, IDC_SENSOR_DATA, m_sensor_data_c);
 	DDX_Text(pDX, IDC_POS_DATA, m_pos_data);
-	DDX_Text(pDX, IDC_SOCKET_PORT, m_socket_map_port);
-	DDX_Text(pDX, IDC_SOCKET_PORT2, m_socket_lrf_port);
+	DDX_Text(pDX, IDC_SOCKET_PORT, m_socket_port);
 }
 
 BEGIN_MESSAGE_MAP(CMapDataReceiverDlg, CDialogEx)
@@ -116,12 +111,9 @@ BOOL CMapDataReceiverDlg::OnInitDialog()
 
 	// TODO: 在此加入額外的初始設定
 	AfxSocketInit();
-	// Initial the Map Socket port
-	m_socket_map.registerParent(this);
+	m_socket.registerParent(this);
 	m_socket_ip_c.SetAddress(192, 168, 1, 2);
-	m_socket_map_port = 25651;
-
-	m_socket_lrf_port = 25650;
+	m_socket_port = 25651;
 
 	for (int i = 0; i < SIZE_MAP; i += SIZE_MAP / 20) {
 		m_sensor_data_c.AddString(CString(""));
@@ -184,23 +176,19 @@ HCURSOR CMapDataReceiverDlg::OnQueryDragIcon()
 
 void CMapDataReceiverDlg::OnBnClickedSocketConnect() {
 
-	if (fg_map_connected || fg_lrf_connected) {
-		if(fg_map_connected) DoMapSocketDisconnect();
-		if(fg_lrf_connected) DoLRFSocketDisconnect();
-		
+	if (fg_connected) {
+		DoSocketDisconnect();
 	} else {
-		DoMapSocketConnect();
-		DoLRFSocketConnect();
+		DoSocketConnect();
 	}
-
-	m_socket_connect_c.SetCheck(fg_map_connected && fg_lrf_connected);
+	m_socket_connect_c.SetCheck(fg_connected);
 
 
 }
 
 
 
-void CMapDataReceiverDlg::DoMapSocketConnect() {
+void CMapDataReceiverDlg::DoSocketConnect() {
 
 	// Sync the Panel data to the model
 	UpdateData(true);
@@ -215,103 +203,45 @@ void CMapDataReceiverDlg::DoMapSocketConnect() {
 
 	// Create a TCP Socket for transfer Camera data
 	// m_tcp_socket.Create(m_tcp_ip_port, 1, aStrIpAddress);
-	if (!m_socket_map.Create()) {
+	if (!m_socket.Create()) {
 
 		// If Socket Create Fail Report Message
 		TCHAR szMsg[1024] = { 0 };
-		wsprintf(szMsg, _T("Map socket create faild: %d"), m_socket_map.GetLastError());
-		ReportSocketStatus(TCPEvent::CREATE_SOCKET_FAIL, CString("Map Socket"));
+		wsprintf(szMsg, _T("create faild: %d"), m_socket.GetLastError());
+		ReportSocketStatus(TCPEvent::CREATE_SOCKET_FAIL);
 		AfxMessageBox(szMsg);
 	} else {
 
-		ReportSocketStatus(TCPEvent::CREATE_SOCKET_SUCCESSFUL, CString("Map Socket"));
+		ReportSocketStatus(TCPEvent::CREATE_SOCKET_SUCCESSFUL);
 		// Connect to the Server ( Raspberry Pi Server )
-		fg_map_connected = m_socket_map.Connect(aStrIpAddress, m_socket_map_port);
+		fg_connected = m_socket.Connect(aStrIpAddress, m_socket_port);
 
 		//fg_tcp_ip_read = true;
 		//m_tcp_ip_IOHandle_thread = AfxBeginThread(TcpIODataHandler, LPVOID(this));
 
 		//For Test
-		m_socket_map.Send("Test from here", 14);
+		m_socket.Send("Test from here", 14);
 	}
 
-	if (fg_map_connected)
+	if (fg_connected)
 		ReportSocketStatus(TCPEvent::CONNECT_SUCCESSFUL, aStrIpAddress);
 	else {
 		ReportSocketStatus(TCPEvent::CONNECT_FAIL, aStrIpAddress);
-		m_socket_map.Close();
+		m_socket.Close();
 	}
 
 
 
 }
 
-void CMapDataReceiverDlg::DoLRFSocketConnect() {
 
-	// Sync the Panel data to the model
-	UpdateData(true);
-
-	// Read the TCP/IP address setting from User
-	byte aIpAddressUnit[4];
-	m_socket_ip_c.GetAddress(
-		aIpAddressUnit[0], aIpAddressUnit[1], aIpAddressUnit[2], aIpAddressUnit[3]);
-	CString aStrIpAddress;
-	aStrIpAddress.Format(_T("%d.%d.%d.%d"),
-		aIpAddressUnit[0], aIpAddressUnit[1], aIpAddressUnit[2], aIpAddressUnit[3]);
-
-	// Create a TCP Socket for transfer Camera data
-	// m_tcp_socket.Create(m_tcp_ip_port, 1, aStrIpAddress);
-	if (!m_socket_lrf.Create()) {
-
-		// If Socket Create Fail Report Message
-		TCHAR szMsg[1024] = { 0 };
-		wsprintf(szMsg, _T("LRF socket create faild: %d"), m_socket_map.GetLastError());
-		ReportSocketStatus(TCPEvent::CREATE_SOCKET_FAIL, CString("LRF Socket"));
-		AfxMessageBox(szMsg);
-	} else {
-
-		ReportSocketStatus(TCPEvent::CREATE_SOCKET_SUCCESSFUL, CString("LRF Socket"));
-		// Connect to the Server ( Raspberry Pi Server )
-		fg_lrf_connected = m_socket_lrf.Connect(aStrIpAddress, m_socket_lrf_port);
-
-		//fg_tcp_ip_read = true;
-		//m_tcp_ip_IOHandle_thread = AfxBeginThread(TcpIODataHandler, LPVOID(this));
-
-		//For Test
-		m_socket_lrf.Send("Test from here", 14);
-	}
-
-	if (fg_lrf_connected)
-		ReportSocketStatus(TCPEvent::CONNECT_SUCCESSFUL, aStrIpAddress);
-	else {
-		ReportSocketStatus(TCPEvent::CONNECT_FAIL, aStrIpAddress);
-		m_socket_lrf.Close();
-	}
-
-
-
-}
-
-void CMapDataReceiverDlg::DoMapSocketDisconnect() {
+void CMapDataReceiverDlg::DoSocketDisconnect() {
 	// Setup Connect-staus flag
-	fg_map_connected = false;
+	fg_connected = false;
 	//fg_tcp_ip_read = false;
 
 	// Close the TCP/IP Socket
-	m_socket_lrf.Close();
-
-	// Report TCP/IP connect status
-	CString tmp_log; tmp_log.Format(_T("I/O event: %s"), _T("Close Socket"));
-	m_socket_log_c.AddString(tmp_log);
-}
-
-void CMapDataReceiverDlg::DoLRFSocketDisconnect() {
-	// Setup Connect-staus flag
-	fg_lrf_connected = false;
-	//fg_tcp_ip_read = false;
-
-	// Close the TCP/IP Socket
-	m_socket_map.Close();
+	m_socket.Close();
 
 	// Report TCP/IP connect status
 	CString tmp_log; tmp_log.Format(_T("I/O event: %s"), _T("Close Socket"));
@@ -322,12 +252,12 @@ void CMapDataReceiverDlg::ReportSocketStatus(TCPEvent event_, CString &msg) {
 	CString tmp_log;
 	switch (event_) {
 		case CREATE_SOCKET_SUCCESSFUL:
-			tmp_log.Format(_T("I/O event: %s <%s>"),
-				_T("Create Socket Successful"), msg);
+			tmp_log.Format(_T("I/O event: %s"),
+				_T("Create Socket Successful"));
 			break;
 		case CREATE_SOCKET_FAIL:
 			tmp_log.Format(_T("I/O event: %s"),
-				_T("Create Socket Fail <%s>"), msg);
+				_T("Create Socket Fail"));
 			break;
 		case CONNECT_SUCCESSFUL:
 			tmp_log.Format(_T("I/O event: %s%s%s"),
