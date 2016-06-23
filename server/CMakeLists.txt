@@ -140,15 +140,15 @@ include_directories(
 ## Declare a C++ executable
 add_executable(robot_controller_node src/robot_controller_node.cpp)
 
-add_executable(sensor_server_node src/sensor_server_node.cpp)
+add_executable(sensor_server_node src/sensor_server_node_new.cpp)
 
 add_executable(sensor_server_node_new src/sensor_server_node_new.cpp)
 
-add_executable(map_server_node src/map_server_node.cpp)
-
-add_executable(map_server_node_new src/map_server_node_new.cpp)
+add_executable(map_server_node src/map_server_node_new.cpp)
 
 add_executable(lrf_server_node src/lrf_server_node.cpp)
+
+add_executable(pose_server_node src/pose_server_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -163,9 +163,9 @@ target_link_libraries(sensor_server_node_new ${catkin_LIBRARIES})
 
 target_link_libraries(map_server_node ${catkin_LIBRARIES})
 
-target_link_libraries(map_server_node_new ${catkin_LIBRARIES})
-
 target_link_libraries(lrf_server_node ${catkin_LIBRARIES})
+
+target_link_libraries(pose_server_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##

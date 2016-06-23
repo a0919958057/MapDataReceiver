@@ -56,6 +56,7 @@ struct MapData* amap;
 nav_msgs::OccupancyGrid::ConstPtr pMsg;
 
 bool is_received_map(false);
+bool is_need_map(false);
 
 void errormsg_print(const int _event) {
 
@@ -147,7 +148,12 @@ void porcessRec() {
     case LOAD_MAP:
 
         break;
+
+    case GET_MAP:
+        is_need_map = true;
+        break;
     }
+
 
 }
 
@@ -260,7 +266,9 @@ int main(int argc, char** argv) {
     ros::Rate rate(5);
     while (node.ok()){
 
-      if( is_received_map == true) {
+      porcessRec();
+
+      if( is_received_map && is_need_map) {
 
 
           // Package the META data for MAP
@@ -281,13 +289,14 @@ int main(int argc, char** argv) {
           apart.info.origin_y = amap->info.origin_y;
           apart.info.origin_yaw = amap->info.origin_yaw;
 
+
           for(int i=0;i<SIZE_MAP;i+= MAP_PER_CUT_SIZE) {
 
 
               porcessRec();
 
               if(is_sending_data == true && is_connect_rst == true) {
-                  ROS_WARN("RESTORE STAMP %d",last_sending_stamp);
+                  ROS_WARN("MAP SERVER :RESTORE STAMP %d",last_sending_stamp);
                   i = last_sending_stamp;
                   is_connect_rst = false;
               }
@@ -318,8 +327,8 @@ int main(int argc, char** argv) {
 
                   if(currentSended == -1) {
                       currentSended = 0;
-                      ROS_ERROR("Socket Send fail");
-                      ROS_ERROR("RESET CONNECT, PLEASE RECONNECT!");
+                      ROS_ERROR("MAP SERVER: Socket Send fail");
+                      ROS_ERROR("MAP SERVER: RESET CONNECT, PLEASE RECONNECT!");
                       close(newsockfd);
                       is_connect_rst = true;
 
@@ -343,6 +352,8 @@ int main(int argc, char** argv) {
               is_sending_data = false;
 
           }
+
+          is_need_map = false;
       } else {
           ROS_INFO("NO MAP RECEIVED");
       }
