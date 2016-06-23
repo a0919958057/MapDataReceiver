@@ -198,7 +198,9 @@
   <ItemGroup>
     <ClInclude Include="..\server\include\ControlDataStruct.h" />
     <ClInclude Include="..\server\include\MapDataStruct.h" />
+    <ClInclude Include="..\server\include\PoseDataStruct.h" />
     <ClInclude Include="CRLSocket.h" />
+    <ClInclude Include="PSocket.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="MSocket.h" />
     <ClInclude Include="MapDataReceiver.h" />
@@ -212,6 +214,7 @@
     <ClCompile Include="MSocket.cpp" />
     <ClCompile Include="MapDataReceiver.cpp" />
     <ClCompile Include="MapDataReceiverDlg.cpp" />
+    <ClCompile Include="PSocket.cpp" />
     <ClCompile Include="RSocket.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

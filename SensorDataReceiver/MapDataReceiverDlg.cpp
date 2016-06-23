@@ -57,9 +57,11 @@ CMapDataReceiverDlg::CMapDataReceiverDlg(CWnd* pParent /*=NULL*/)
 	, fg_map_connected(false)
 	, fg_lrf_connected(false)
 	, fg_cmd_connected(false)
+	, fg_pose_connected(false)
 	, m_socket_map_port(0)
 	, m_socket_lrf_port(0)
-	, m_pos_data(_T("")) {
+	, m_socket_pose_port(0)
+	, m_pos_data(_T("")){
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
@@ -73,6 +75,7 @@ void CMapDataReceiverDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_POS_DATA, m_pos_data);
 	DDX_Text(pDX, IDC_SOCKET_PORT, m_socket_map_port);
 	DDX_Text(pDX, IDC_SOCKET_PORT2, m_socket_lrf_port);
+	DDX_Text(pDX, IDC_SOCKET_PORT3, m_socket_pose_port);
 }
 
 BEGIN_MESSAGE_MAP(CMapDataReceiverDlg, CDialogEx)
@@ -83,6 +86,7 @@ BEGIN_MESSAGE_MAP(CMapDataReceiverDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_SAVE_MAP, &CMapDataReceiverDlg::OnBnClickedSaveMap)
 	ON_BN_CLICKED(IDC_GET_MAP_LIST, &CMapDataReceiverDlg::OnBnClickedGetMapList)
 	ON_BN_CLICKED(IDC_SEL_MAP, &CMapDataReceiverDlg::OnBnClickedSelMap)
+	ON_BN_CLICKED(IDC_GET_MAP, &CMapDataReceiverDlg::OnBnClickedGetMap)
 END_MESSAGE_MAP()
 
 
@@ -123,15 +127,15 @@ BOOL CMapDataReceiverDlg::OnInitDialog()
 	m_socket_map.registerParent(this);
 	m_socket_lrf.registerParent(this);
 	m_socket_cmd.registerParent(this);
+	m_socket_pose.registerParent(this);
 
 	m_socket_ip_c.SetAddress(192, 168, 1, 2);
+
+	// Setup the init Port for each socket
 	m_socket_map_port = 25651;
-
 	m_socket_lrf_port = 25650;
+	m_socket_pose_port = 25652;
 
-	for (int i = 0; i < SIZE_MAP; i += SIZE_MAP / 20) {
-		m_sensor_data_c.AddString(CString(""));
-	}
 	UpdateData(false);
 
 	return TRUE;  // 傳回 TRUE，除非您對控制項設定焦點
@@ -190,16 +194,21 @@ HCURSOR CMapDataReceiverDlg::OnQueryDragIcon()
 
 void CMapDataReceiverDlg::OnBnClickedSocketConnect() {
 
-	if (fg_map_connected || fg_lrf_connected) {
+	if (fg_map_connected || fg_lrf_connected || fg_pose_connected) {
 		if(fg_map_connected) DoMapSocketDisconnect();
 		if(fg_lrf_connected) DoLRFSocketDisconnect();
+		if (fg_pose_connected) DoPoseSocketDisconnect();
 		
 	} else {
+
+		// If all socket not connect yet
 		DoMapSocketConnect();
 		DoLRFSocketConnect();
+		DoPoseSocketConnect();
 	}
 
-	m_socket_connect_c.SetCheck(fg_map_connected && fg_lrf_connected);
+	m_socket_connect_c.SetCheck(
+		fg_map_connected && fg_lrf_connected && fg_pose_connected);
 
 
 }
@@ -224,7 +233,7 @@ void CMapDataReceiverDlg::DoMapSocketConnect() {
 
 		// If Socket Create Fail Report Message
 		TCHAR szMsg[1024] = { 0 };
-		wsprintf(szMsg, _T("Map socket create faild: %d"), m_socket_map.GetLastError());
+		wsprintf(szMsg, _T("Map socket create faild: %d"), m_socket_cmd.GetLastError());
 		ReportSocketStatus(TCPEvent::CREATE_SOCKET_FAIL, CString("CMD Socket"));
 		AfxMessageBox(szMsg);
 	} else {
@@ -268,7 +277,7 @@ void CMapDataReceiverDlg::DoMapSocketConnect() {
 	}
 
 	CString report_cmd(aStrIpAddress);
-	report_map.Append(CString(" Cmd Socket"));
+	report_cmd.Append(CString(" Cmd Socket"));
 
 	if (fg_cmd_connected)
 		ReportSocketStatus(TCPEvent::CONNECT_SUCCESSFUL, report_cmd);
@@ -300,7 +309,7 @@ void CMapDataReceiverDlg::DoLRFSocketConnect() {
 
 		// If Socket Create Fail Report Message
 		TCHAR szMsg[1024] = { 0 };
-		wsprintf(szMsg, _T("LRF socket create faild: %d"), m_socket_map.GetLastError());
+		wsprintf(szMsg, _T("LRF socket create faild: %d"), m_socket_lrf.GetLastError());
 		ReportSocketStatus(TCPEvent::CREATE_SOCKET_FAIL, CString("LRF Socket"));
 		AfxMessageBox(szMsg);
 	} else {
@@ -327,16 +336,55 @@ void CMapDataReceiverDlg::DoLRFSocketConnect() {
 
 }
 
+void CMapDataReceiverDlg::DoPoseSocketConnect() {
+	// Sync the Panel data to the model
+	UpdateData(true);
+
+	// Read the TCP/IP address setting from User
+	byte aIpAddressUnit[4];
+	m_socket_ip_c.GetAddress(
+		aIpAddressUnit[0], aIpAddressUnit[1], aIpAddressUnit[2], aIpAddressUnit[3]);
+	CString aStrIpAddress;
+	aStrIpAddress.Format(_T("%d.%d.%d.%d"),
+		aIpAddressUnit[0], aIpAddressUnit[1], aIpAddressUnit[2], aIpAddressUnit[3]);
+
+	// Create a TCP Socket for transfer Camera data
+	// m_tcp_socket.Create(m_tcp_ip_port, 1, aStrIpAddress);
+	if (!m_socket_pose.Create()) {
+
+		// If Socket Create Fail Report Message
+		TCHAR szMsg[1024] = { 0 };
+		wsprintf(szMsg, _T("Pose socket create faild: %d"), m_socket_pose.GetLastError());
+		ReportSocketStatus(TCPEvent::CREATE_SOCKET_FAIL, CString("Pose Socket"));
+		AfxMessageBox(szMsg);
+	} else {
+
+		ReportSocketStatus(TCPEvent::CREATE_SOCKET_SUCCESSFUL, CString("Pose Socket"));
+		// Connect to the Server ( Raspberry Pi Server )
+		fg_pose_connected = m_socket_pose.Connect(aStrIpAddress, m_socket_pose_port);
+
+		//For Test
+		m_socket_pose.Send("Test from here", 14);
+	}
+
+	if (fg_pose_connected)
+		ReportSocketStatus(TCPEvent::CONNECT_SUCCESSFUL, aStrIpAddress);
+	else {
+		ReportSocketStatus(TCPEvent::CONNECT_FAIL, aStrIpAddress);
+		m_socket_pose.Close();
+	}
+}
+
 void CMapDataReceiverDlg::DoMapSocketDisconnect() {
 	// Setup Connect-staus flag
 	fg_map_connected = false;
 	//fg_tcp_ip_read = false;
 
 	// Close the TCP/IP Socket
-	m_socket_lrf.Close();
+	m_socket_map.Close();
 
 	// Report TCP/IP connect status
-	CString tmp_log; tmp_log.Format(_T("I/O event: %s"), _T("Close Socket"));
+	CString tmp_log; tmp_log.Format(_T("I/O event: %s"), _T("Close map Socket"));
 	m_socket_log_c.AddString(tmp_log);
 }
 
@@ -346,10 +394,23 @@ void CMapDataReceiverDlg::DoLRFSocketDisconnect() {
 	//fg_tcp_ip_read = false;
 
 	// Close the TCP/IP Socket
-	m_socket_map.Close();
+	m_socket_lrf.Close();
 
 	// Report TCP/IP connect status
-	CString tmp_log; tmp_log.Format(_T("I/O event: %s"), _T("Close Socket"));
+	CString tmp_log; tmp_log.Format(_T("I/O event: %s"), _T("Close LRF Socket"));
+	m_socket_log_c.AddString(tmp_log);
+}
+
+void CMapDataReceiverDlg::DoPoseSocketDisconnect() {
+	// Setup Connect-staus flag
+	fg_pose_connected = false;
+	//fg_tcp_ip_read = false;
+
+	// Close the TCP/IP Socket
+	m_socket_pose.Close();
+
+	// Report TCP/IP connect status
+	CString tmp_log; tmp_log.Format(_T("I/O event: %s"), _T("Close Pose Socket"));
 	m_socket_log_c.AddString(tmp_log);
 }
 
@@ -434,4 +495,18 @@ void CMapDataReceiverDlg::OnBnClickedSelMap() {
 	} else {
 		AfxMessageBox(CString(_T("請先連接! Cmd tunnel")));
 	}
+}
+
+// 當按下取得地圖，對面(ROS Server)將會送出一個地圖。
+void CMapDataReceiverDlg::OnBnClickedGetMap() {
+	if (fg_cmd_connected) {
+		ControlMsg msg;
+		memset(&msg, 0, sizeof(ControlMsg));
+		msg.lrf_msg = ControlLRFMsg::START_LRF_STREAM;
+		msg.map_msg = ControlMapMsg::GET_MAP;
+		m_socket_cmd.Send(&msg, sizeof(ControlMsg));
+	} else {
+		AfxMessageBox(CString(_T("請先連接! Cmd tunnel")));
+	}
+
 }

@@ -6,6 +6,7 @@
 enum ControlMapMsg {
 	SET_INIT_POSE,
 	GET_MAP_LIST,
+	GET_MAP,
 	SEL_MAP,
 	LOAD_MAP
 };

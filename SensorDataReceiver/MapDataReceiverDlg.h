@@ -9,6 +9,7 @@
 #include "MSocket.h"
 #include "CRLSocket.h"
 #include "RSocket.h"
+#include "PSocket.h"
 
 
 // CSensorDataReceiverDlg ¹ï¸Ü¤è¶ô
@@ -58,17 +59,21 @@ public:
 	afx_msg void OnBnClickedSocketConnect();
 	void DoMapSocketConnect();
 	void DoLRFSocketConnect();
+	void DoPoseSocketConnect();
 private:
 	void DoMapSocketDisconnect();
 	void DoLRFSocketDisconnect();
+	void DoPoseSocketDisconnect();
 	void CMapDataReceiverDlg::ReportSocketStatus(TCPEvent event_, CString &msg = CString(""));
 	bool fg_map_connected;
 	bool fg_lrf_connected;
 	bool fg_cmd_connected;
+	bool fg_pose_connected;
 protected:
 	CMSocket m_socket_map;
 	CRSocket m_socket_lrf;
 	CCRLSocket m_socket_cmd;
+	CPSocket m_socket_pose;
 public:
 	CListBox m_sensor_data_c;
 	CString m_pos_data;
@@ -76,4 +81,6 @@ public:
 
 	afx_msg void OnBnClickedGetMapList();
 	afx_msg void OnBnClickedSelMap();
+	UINT m_socket_pose_port;
+	afx_msg void OnBnClickedGetMap();
 };

@@ -1,18 +1,15 @@
 #pragma once
 #include "afxsock.h"
+#include "../server/include/PoseDataStruct.h"
 
-
-#define SIZE_LRF_DATA 667
-class CRSocket :
+class CPSocket :
 	public CSocket {
 public:
-	CRSocket();
-	virtual ~CRSocket();
+	CPSocket();
+	virtual ~CPSocket();
 	virtual void OnReceive(int nErrorCode);
 	virtual BOOL OnMessagePending();
-	float m_lrf_data[SIZE_LRF_DATA];
 	void registerParent(CWnd* _parent);
-
+	PoseData m_pose_data;
 	CWnd* m_parent;
 };
-
