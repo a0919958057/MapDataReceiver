@@ -2,6 +2,8 @@
     <node name="hokuyo" pkg="hokuyo_node" type="hokuyo_node" required="true" output="screen" >
         <param name="frame_id" type="str" value="laser"/>
         <param name="port" type="string" value="/dev/hokuyo"/>
+        <param name="angle_min" type="double" value="-1.5707963"/>
+        <param name="angle_max" type="double" value="1.5607963"/>
         <param name="intensity" type="bool" value="false"/>
     </node>
 

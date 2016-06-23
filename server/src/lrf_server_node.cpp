@@ -26,7 +26,7 @@
 #include <unistd.h>
 #include <netdb.h>
 
-#define LRF_DATA_LENGH 667
+#define LRF_DATA_LENGH 510
 /***************************/
 
 std::string laser_topic;
