@@ -1,6 +1,7 @@
 
 #include<ros/ros.h>
 #include<nav_msgs/OccupancyGrid.h>
+#include<geometry_msgs/PoseWithCovarianceStamped.h>
 #include<tf/tf.h>
 #include<math.h>
 #include<serial/serial.h>
@@ -114,48 +115,7 @@ void callback_map(const nav_msgs::OccupancyGrid::ConstPtr &msg) {
     memcpy(amap->data,pMsg->data.data(),SIZE_MAP);
 }
 
-void porcessRec() {
-    // Read the command from MFC Client
-    int bytes_available(0);
-    if(ioctl(cmdsockfd, FIONREAD, &bytes_available) < 0) {
-        ROS_ERROR("Read Socket Read buffer failed, error= %d\n ", errno);
-    }
-    ControlMsg cmd_msg;
-    if(bytes_available > 0) {
-        read(cmdsockfd, &cmd_msg,sizeof(ControlMsg));
-        ROS_INFO("Read CMD Message! %d",cmd_msg.map_msg);
-        bytes_available = 0;
-    }
-
-    switch(cmd_msg.map_msg) {
-    case SET_INIT_POSE:
-        // Set the initial pose
-        break;
-    case GET_MAP_LIST: {
-        ControlMsg report_msg;
-        memcpy(&report_msg,&cmd_msg,sizeof(ControlMsg));
-        for(int i=0;i<5;i++) {
-            report_msg.data[i] = 10-i;
-        }
-
-        write(cmdsockfd,&report_msg,sizeof(ControlMsg));
-
-        break;
-    }
-    case SEL_MAP:
-
-        break;
-    case LOAD_MAP:
-
-        break;
-
-    case GET_MAP:
-        is_need_map = true;
-        break;
-    }
-
-
-}
+void porcessRec(ros::NodeHandle* ptr_node);
 
 bool is_sending_data(false);
 bool is_connect_rst(false);
@@ -266,7 +226,7 @@ int main(int argc, char** argv) {
     ros::Rate rate(5);
     while (node.ok()){
 
-      porcessRec();
+      porcessRec(&node);
 
       if( is_received_map && is_need_map) {
 
@@ -293,7 +253,7 @@ int main(int argc, char** argv) {
           for(int i=0;i<SIZE_MAP;i+= MAP_PER_CUT_SIZE) {
 
 
-              porcessRec();
+              porcessRec(&node);
 
               if(is_sending_data == true && is_connect_rst == true) {
                   ROS_WARN("MAP SERVER :RESTORE STAMP %d",last_sending_stamp);
@@ -355,7 +315,7 @@ int main(int argc, char** argv) {
 
           is_need_map = false;
       } else {
-          ROS_INFO("NO MAP RECEIVED");
+          //ROS_INFO("NO MAP RECEIVED");
       }
 
 
@@ -369,4 +329,78 @@ int main(int argc, char** argv) {
     close(sockfd);
 
     delete amap;
+}
+
+void porcessRec(ros::NodeHandle* ptr_node) {
+    // Read the command from MFC Client
+    int bytes_available(0);
+    if(ioctl(cmdsockfd, FIONREAD, &bytes_available) < 0) {
+        ROS_ERROR("Read Socket Read buffer failed, error= %d\n ", errno);
+    }
+    ControlMsg cmd_msg;
+    if(bytes_available > 0) {
+        read(cmdsockfd, &cmd_msg,sizeof(ControlMsg));
+        ROS_INFO("Read CMD Message! %d",cmd_msg.map_msg);
+        bytes_available = 0;
+        switch(cmd_msg.map_msg) {
+        case SET_INIT_POSE: {
+
+            // Create a empty PoseWithCovarianceStamped message
+            geometry_msgs::PoseWithCovarianceStamped initial_pose;
+
+            // Setup the Header
+            initial_pose.header.frame_id = "/map";
+            initial_pose.header.stamp = ros::Time::now();
+
+            // copy the position data
+            initial_pose.pose.pose.position.x = cmd_msg.init_pose_position[0];
+            initial_pose.pose.pose.position.y = cmd_msg.init_pose_position[1];
+            initial_pose.pose.pose.position.z = cmd_msg.init_pose_position[2];
+
+            // copy the orientation data
+            tf::Quaternion q = tf::createQuaternionFromYaw(cmd_msg.init_pose_orientation[2]);
+            geometry_msgs::Quaternion q_msg;
+            tf::quaternionTFToMsg(q,q_msg);
+            initial_pose.pose.pose.orientation = q_msg;
+
+            // copy the covariace data
+            for(int i=0;i<36;i++) {
+                initial_pose.pose.covariance[i] = cmd_msg.init_pose_cov[i];
+            }
+
+
+            // publish the initial pose topic
+            ros::Publisher pub = ptr_node->advertise<geometry_msgs::PoseWithCovarianceStamped>
+                    ("/initialpose",10, true);
+            pub.publish(initial_pose);
+            ROS_INFO("Initial pose set ! ");
+            break;
+        }
+        case GET_MAP_LIST: {
+            ControlMsg report_msg;
+            memcpy(&report_msg,&cmd_msg,sizeof(ControlMsg));
+            for(int i=0;i<5;i++) {
+                report_msg.data[i] = 10-i;
+            }
+
+            write(cmdsockfd,&report_msg,sizeof(ControlMsg));
+
+            break;
+        }
+        case SEL_MAP:
+
+            break;
+        case LOAD_MAP:
+
+            break;
+
+        case GET_MAP:
+            is_need_map = true;
+            break;
+        }
+    }
+
+
+
+
 }
