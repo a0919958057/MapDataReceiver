@@ -3,8 +3,8 @@
 #include <cmath>
 
 // Define the map size
-#define MAP_SIZE_X (600)
-#define MAP_SIZE_Y (600)
+#define MAP_SIZE_X (576)
+#define MAP_SIZE_Y (576)
 #define SIZE_MAP ( MAP_SIZE_X * MAP_SIZE_Y )
 
 // Define the atom data size  (bytes)
