@@ -83,4 +83,5 @@ public:
 	afx_msg void OnBnClickedSelMap();
 	UINT m_socket_pose_port;
 	afx_msg void OnBnClickedGetMap();
+	afx_msg void OnBnClickedSetInitPose();
 };
