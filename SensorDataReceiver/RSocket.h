@@ -2,7 +2,7 @@
 #include "afxsock.h"
 
 
-#define SIZE_LRF_DATA 667
+#define SIZE_LRF_DATA 510
 class CRSocket :
 	public CSocket {
 public:
