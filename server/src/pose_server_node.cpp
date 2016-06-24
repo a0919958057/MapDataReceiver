@@ -82,7 +82,7 @@ void errormsg_print(const int _event) {
 
 void callback_amcl_pose(const geometry_msgs::PoseWithCovarianceStampedPtr &msg) {
     // Copy the covariance from topic
-    for(int i=0;i<64;i++) {
+    for(int i=0;i<36;i++) {
         pose_data.pose_cov[i] = msg->pose.covariance[i];
     }
 }
@@ -220,6 +220,7 @@ int main(int argc, char** argv) {
 
       }while(cbLeft > 0);
 
+      ros::spinOnce();
       rate.sleep();
     }
 

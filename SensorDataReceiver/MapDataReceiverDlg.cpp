@@ -6,7 +6,7 @@
 #include "MapDataReceiver.h"
 #include "MapDataReceiverDlg.h"
 #include "afxdialogex.h"
-
+#include <math.h>
 // CSocket 的標頭檔
 #include "MSocket.h"
 
@@ -87,6 +87,7 @@ BEGIN_MESSAGE_MAP(CMapDataReceiverDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_GET_MAP_LIST, &CMapDataReceiverDlg::OnBnClickedGetMapList)
 	ON_BN_CLICKED(IDC_SEL_MAP, &CMapDataReceiverDlg::OnBnClickedSelMap)
 	ON_BN_CLICKED(IDC_GET_MAP, &CMapDataReceiverDlg::OnBnClickedGetMap)
+	ON_BN_CLICKED(IDC_SET_INIT_POSE, &CMapDataReceiverDlg::OnBnClickedSetInitPose)
 END_MESSAGE_MAP()
 
 
@@ -416,33 +417,36 @@ void CMapDataReceiverDlg::DoPoseSocketDisconnect() {
 
 void CMapDataReceiverDlg::ReportSocketStatus(TCPEvent event_, CString &msg) {
 	CString tmp_log;
+	CTime current_time = CTime::GetCurrentTime();
+	tmp_log.Format(_T("[ %02d點%02d分%02d秒: ] "),
+		current_time.GetHour(), current_time.GetMinute(), current_time.GetSecond());
 	switch (event_) {
 		case CREATE_SOCKET_SUCCESSFUL:
-			tmp_log.Format(_T("I/O event: %s <%s>"),
+			tmp_log.AppendFormat(_T("I/O event: %s <%s>"),
 				_T("Create Socket Successful"), msg);
 			break;
 		case CREATE_SOCKET_FAIL:
-			tmp_log.Format(_T("I/O event: %s"),
+			tmp_log.AppendFormat(_T("I/O event: %s"),
 				_T("Create Socket Fail <%s>"), msg);
 			break;
 		case CONNECT_SUCCESSFUL:
-			tmp_log.Format(_T("I/O event: %s%s%s"),
+			tmp_log.AppendFormat(_T("I/O event: %s%s%s"),
 				_T("Connect "), msg, _T(" Successful"));
 			break;
 		case CONNECT_FAIL:
-			tmp_log.Format(_T("I/O event: %s%s%s"),
+			tmp_log.AppendFormat(_T("I/O event: %s%s%s"),
 				_T("Connect "), msg, _T(" Fail"));
 			break;
 		case DISCONNECT:
-			tmp_log.Format(_T("I/O event: %s"),
+			tmp_log.AppendFormat(_T("I/O event: %s"),
 				_T("Disconnect"));
 			break;
 		case SEND_MESSAGE_SUCCESSFUL:
-			tmp_log.Format(_T("I/O event: %s%s%s"),
+			tmp_log.AppendFormat(_T("I/O event: %s%s%s"),
 				_T("Sent Message"), msg, _T("Successful"));
 			break;
 		case SENT_MESSAGE_FAIL:
-			tmp_log.Format(_T("I/O event: %s%s%s"),
+			tmp_log.AppendFormat(_T("I/O event: %s%s%s"),
 				_T("Sent Message"), msg, _T("Fail"));
 			break;
 	}
@@ -509,4 +513,23 @@ void CMapDataReceiverDlg::OnBnClickedGetMap() {
 		AfxMessageBox(CString(_T("請先連接! Cmd tunnel")));
 	}
 
+}
+
+
+void CMapDataReceiverDlg::OnBnClickedSetInitPose() {
+	if (fg_cmd_connected) {
+		ControlMsg msg;
+		memset(&msg, 0, sizeof(ControlMsg));
+		msg.lrf_msg = ControlLRFMsg::START_LRF_STREAM;
+		msg.map_msg = ControlMapMsg::SET_INIT_POSE;
+
+		
+		// Setup covariance matrix
+		msg.init_pose_cov[6 * 0 + 0] = 0.5 * 0.5;
+		msg.init_pose_cov[6 * 1 + 1] = 0.5 * 0.5;
+		msg.init_pose_cov[6 * 5 + 5] =  3.1415926 / 12.0 * 3.1415926 / 12.0;
+		m_socket_cmd.Send(&msg, sizeof(ControlMsg));
+	} else {
+		AfxMessageBox(CString(_T("請先連接! Cmd tunnel")));
+	}
 }
