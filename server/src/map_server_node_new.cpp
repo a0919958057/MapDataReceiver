@@ -121,6 +121,8 @@ bool is_sending_data(false);
 bool is_connect_rst(false);
 int last_sending_stamp(0);
 
+ros::Publisher pub;
+
 int main(int argc, char** argv) {
 
     amap = new MapData;
@@ -132,6 +134,8 @@ int main(int argc, char** argv) {
     ros::NodeHandle node("~");
 
     ros::NodeHandle node_main;
+    pub = node_main.advertise<geometry_msgs::PoseWithCovarianceStamped>
+           ("/initialpose",10, true);
     ros::Subscriber sub_map = node_main.subscribe("/map",10,callback_map);
 
     if(!node.hasParam("socket_port"))
@@ -370,8 +374,6 @@ void porcessRec(ros::NodeHandle* ptr_node) {
 
 
             // publish the initial pose topic
-            ros::Publisher pub = ptr_node->advertise<geometry_msgs::PoseWithCovarianceStamped>
-                    ("/initialpose",10, true);
             pub.publish(initial_pose);
             ROS_INFO("Initial pose set ! ");
             break;
