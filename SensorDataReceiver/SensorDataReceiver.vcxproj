@@ -98,8 +98,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <StackReserveSize>
-      </StackReserveSize>
+      <StackReserveSize>16777216</StackReserveSize>
       <StackCommitSize>
       </StackCommitSize>
       <LargeAddressAware>true</LargeAddressAware>

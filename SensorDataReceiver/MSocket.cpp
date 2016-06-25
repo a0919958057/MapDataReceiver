@@ -119,15 +119,15 @@ void CMSocket::showData() {
 	//Create a memory bitmap
 	CBitmap newbmp;
 	
-	uint8_t buffer_map[400 * 400 * 4];
+	uint8_t buffer_map[MAP_SIZE_X * MAP_SIZE_Y * 4];
 
-	for (int i = 0; i < 400 * 400 * 4; i+=4) {
-		buffer_map[i] = m_map_data->data[i / 4];
-		buffer_map[i+1] = m_map_data->data[i / 4];
-		buffer_map[i+2] = m_map_data->data[i / 4];
+	for (int i = 0; i < MAP_SIZE_X * MAP_SIZE_Y * 4; i+=4) {
+		buffer_map[i] = 255-m_map_data->data[i / 4];
+		buffer_map[i+1] = 255-m_map_data->data[i / 4];
+		buffer_map[i+2] = 255-m_map_data->data[i / 4];
 		buffer_map[i+3] = 255;
 	}
-	newbmp.CreateCompatibleBitmap(pDC, 400, 400);
+	newbmp.CreateCompatibleBitmap(pDC, MAP_SIZE_X, MAP_SIZE_Y);
 
 	newbmp.SetBitmapBits(sizeof(buffer_map), buffer_map);
 
@@ -137,7 +137,7 @@ void CMSocket::showData() {
 	memDC.SetBkColor(RGB(255,255, 255));
 
 	//blit from memory dc into screen
-	pDC->BitBlt(0, 0, 400, 400, &memDC, 0, 0, SRCCOPY);
+	pDC->BitBlt(0, 0, MAP_SIZE_X, MAP_SIZE_Y, &memDC, 0, 0, SRCCOPY);
 
 
 	//select old bitmap back into the memory dc

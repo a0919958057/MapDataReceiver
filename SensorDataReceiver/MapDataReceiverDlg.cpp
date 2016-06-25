@@ -130,7 +130,7 @@ BOOL CMapDataReceiverDlg::OnInitDialog()
 	m_socket_cmd.registerParent(this);
 	m_socket_pose.registerParent(this);
 
-	m_socket_ip_c.SetAddress(192, 168, 1, 37);
+	m_socket_ip_c.SetAddress(192, 168, 1, 210);
 
 	// Setup the init Port for each socket
 	m_socket_map_port = 25651;
