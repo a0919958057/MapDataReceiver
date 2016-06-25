@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
 
 
     // Into the Message loop, while there is a topic be subscribed exist then callback.
-    ros::Rate r(10);
+    ros::Rate r(1);
     while(ros::ok()) {
         if(is_rst_connect) {
             is_rst_connect = false;
