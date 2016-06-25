@@ -31,10 +31,10 @@
     <param name="odam_frame" value="base_odam"/>
     <param name="maxUrange" value="4.0"/>
     <param name="manRange" value="5.5"/>
-    <param name="xmin" value="-15.0"/>
-    <param name="ymin" value="-15.0"/>
-    <param name="xmax" value="15.0"/>
-    <param name="ymax" value="15.0"/>
+    <param name="xmin" value="-8.0"/>
+    <param name="ymin" value="-8.0"/>
+    <param name="xmax" value="8.0"/>
+    <param name="ymax" value="8.0"/>
 
   </node>
   

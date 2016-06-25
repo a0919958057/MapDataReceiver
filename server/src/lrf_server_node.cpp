@@ -30,6 +30,7 @@
 /***************************/
 
 std::string laser_topic;
+double update_frequency;
 
 bool is_rst_connect(false);
 
@@ -117,6 +118,10 @@ int main(int argc, char** argv) {
         ROS_WARN("Usage : rosrun robot_controller robot_controller_node _socket_port:=<socket_port>");
     node.param<int>("socket_port",socket_port,25650);
 
+    if(!node.hasParam("update_feq"))
+        ROS_WARN("Usage : rosrun robot_controller robot_controller_node _update_feq:=<update_feq>");
+    node.param<double>("update_feq",update_frequency,10.0);
+
     // Subscribe the Topic of sensor_msgs/IMU
     ros::Subscriber sub_lrf = node.subscribe(laser_topic,100,callback_laser);
 
@@ -180,7 +185,7 @@ int main(int argc, char** argv) {
 
 
     // Into the Message loop, while there is a topic be subscribed exist then callback.
-    ros::Rate r(1);
+    ros::Rate r(update_frequency);
     while(ros::ok()) {
         if(is_rst_connect) {
             is_rst_connect = false;
